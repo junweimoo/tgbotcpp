@@ -56,10 +56,12 @@ set_target_properties(tgbotcpp PROPERTIES
     SOVERSION ${PROJECT_VERSION_MAJOR}
 )
 
-# Dependencies are wired up here as the library grows, e.g.:
-#   find_package(CURL REQUIRED)
-#   find_package(nlohmann_json REQUIRED)
-#   target_link_libraries(tgbotcpp PUBLIC CURL::libcurl nlohmann_json::nlohmann_json)
+# Dependencies.
+# OpenSSL provides the TLS transport for the HTTP client. It is linked PRIVATE
+# because OpenSSL types stay behind a pimpl and never appear in public headers;
+# CMake still propagates it to consumers of this static library at link time.
+find_package(OpenSSL REQUIRED)
+target_link_libraries(tgbotcpp PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
 # ---------------------------------------------------------------------------
 # Subdirectories

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 
+#include "net/Url.hpp"
 #include "tgbotcpp/tgbotcpp.hpp"
 
 namespace {
@@ -108,12 +109,53 @@ void testSendMessage() {
           "sendMessage url-encodes text in the body");
 }
 
+void testParseUrl() {
+    using tgbotcpp::net::parseUrl;
+
+    auto https = parseUrl("https://api.telegram.org/bot123/getUpdates?offset=5");
+    check(https.host == "api.telegram.org", "parseUrl host");
+    check(https.port == "443", "parseUrl defaults https port to 443");
+    check(https.target == "/bot123/getUpdates?offset=5", "parseUrl target keeps path+query");
+
+    auto explicitPort = parseUrl("https://example.com:8443/path");
+    check(explicitPort.host == "example.com", "parseUrl host with explicit port");
+    check(explicitPort.port == "8443", "parseUrl keeps explicit port");
+
+    auto noPath = parseUrl("https://example.com");
+    check(noPath.target == "/", "parseUrl defaults empty path to /");
+
+    auto http = parseUrl("http://example.com/x");
+    check(http.port == "80", "parseUrl defaults http port to 80");
+
+    bool threw = false;
+    try {
+        parseUrl("ftp://example.com");
+    } catch (const std::exception&) {
+        threw = true;
+    }
+    check(threw, "parseUrl rejects unsupported scheme");
+}
+
+void testHttpClientConstructs() {
+    // Verifies OpenSSL links and SSL_CTX initialises; no network is touched.
+    bool ok = true;
+    try {
+        tgbotcpp::net::OpenSslHttpClient client;
+        (void)client;
+    } catch (const std::exception&) {
+        ok = false;
+    }
+    check(ok, "OpenSslHttpClient constructs without throwing");
+}
+
 } // namespace
 
 int main() {
     testTokenAccessor();
     testGetUpdates();
     testSendMessage();
+    testParseUrl();
+    testHttpClientConstructs();
 
     if (failures == 0) {
         std::cout << "All tests passed\n";

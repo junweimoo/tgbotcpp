@@ -1,10 +1,12 @@
 // Minimal example: an echo bot.
 //
-// This is a skeleton — the handler registration and polling loop are not yet
-// implemented. It exists to show the intended shape of the public API and to
-// give the build something to compile.
+// Long-polls Telegram for updates and echoes any text message back to the chat
+// it came from. Bot has no handler/run loop yet, so this drives bot.api()
+// directly.
 
+#include <cstdint>
 #include <cstdlib>
+#include <exception>
 #include <iostream>
 
 #include "tgbotcpp/tgbotcpp.hpp"
@@ -17,12 +19,22 @@ int main() {
     }
 
     tgbotcpp::Bot bot(token);
+    std::cout << "tgbotcpp echo_bot running. Press Ctrl-C to stop.\n";
 
-    // bot.onMessage([&](const tgbotcpp::Message& msg) {
-    //     bot.api().sendMessage(msg.chat.id, msg.text);
-    // });
-    // bot.run();
+    std::int64_t offset = 0;
+    try {
+        while (true) {
+            for (const auto& update : bot.api().getUpdates(offset, 30)) {
+                offset = update.updateId + 1;
+                if (!update.message.text.empty()) {
+                    bot.api().sendMessage(update.message.chat.id, update.message.text);
+                }
+            }
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "echo_bot error: " << e.what() << "\n";
+        return 1;
+    }
 
-    std::cout << "tgbotcpp echo_bot skeleton.\n";
     return 0;
 }
