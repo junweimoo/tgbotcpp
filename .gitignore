@@ -27,3 +27,6 @@ Testing/
 *.swp
 .cache/
 compile_commands.json
+
+# Local environment variables
+.env

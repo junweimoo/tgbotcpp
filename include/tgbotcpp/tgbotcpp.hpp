@@ -10,3 +10,5 @@
 #include "tgbotcpp/types/Message.hpp"
 #include "tgbotcpp/types/Chat.hpp"
 #include "tgbotcpp/types/User.hpp"
+#include "tgbotcpp/types/CallbackQuery.hpp"
+#include "tgbotcpp/types/InlineQuery.hpp"

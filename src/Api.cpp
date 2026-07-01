@@ -98,11 +98,63 @@ Message parseMessage(const JsonValue& j) {
     return message;
 }
 
+CallbackQuery parseCallbackQuery(const JsonValue& j) {
+    CallbackQuery query;
+    query.id = j.at("id").asString();
+    if (j.has("from")) {
+        query.from = parseUser(j.at("from"));
+    }
+    if (j.has("message")) {
+        query.message = parseMessage(j.at("message"));
+    }
+    query.inlineMessageId = j.at("inline_message_id").asString();
+    query.chatInstance = j.at("chat_instance").asString();
+    query.data = j.at("data").asString();
+    query.gameShortName = j.at("game_short_name").asString();
+    return query;
+}
+
+InlineQuery parseInlineQuery(const JsonValue& j) {
+    InlineQuery query;
+    query.id = j.at("id").asString();
+    if (j.has("from")) {
+        query.from = parseUser(j.at("from"));
+    }
+    query.query = j.at("query").asString();
+    query.offset = j.at("offset").asString();
+    query.chatType = j.at("chat_type").asString();
+    return query;
+}
+
 Update parseUpdate(const JsonValue& j) {
     Update update;
     update.updateId = j.at("update_id").asInt64();
     if (j.has("message")) {
         update.message = parseMessage(j.at("message"));
+    }
+    if (j.has("edited_message")) {
+        update.editedMessage = parseMessage(j.at("edited_message"));
+    }
+    if (j.has("channel_post")) {
+        update.channelPost = parseMessage(j.at("channel_post"));
+    }
+    if (j.has("edited_channel_post")) {
+        update.editedChannelPost = parseMessage(j.at("edited_channel_post"));
+    }
+    if (j.has("business_message")) {
+        update.businessMessage = parseMessage(j.at("business_message"));
+    }
+    if (j.has("edited_business_message")) {
+        update.editedBusinessMessage = parseMessage(j.at("edited_business_message"));
+    }
+    if (j.has("guest_message")) {
+        update.guestMessage = parseMessage(j.at("guest_message"));
+    }
+    if (j.has("callback_query")) {
+        update.callbackQuery = parseCallbackQuery(j.at("callback_query"));
+    }
+    if (j.has("inline_query")) {
+        update.inlineQuery = parseInlineQuery(j.at("inline_query"));
     }
     return update;
 }

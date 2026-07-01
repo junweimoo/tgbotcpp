@@ -109,6 +109,68 @@ void testSendMessage() {
           "sendMessage url-encodes text in the body");
 }
 
+void testUpdateKinds() {
+    FakeHttpClient http;
+    http.getResponse = R"({
+        "ok": true,
+        "result": [
+            {
+                "update_id": 200,
+                "edited_message": {
+                    "message_id": 8,
+                    "date": 1700000100,
+                    "chat": {"id": 42, "type": "private"},
+                    "text": "edited"
+                }
+            },
+            {
+                "update_id": 201,
+                "callback_query": {
+                    "id": "cbq-1",
+                    "from": {"id": 7, "is_bot": false, "first_name": "Bob"},
+                    "message": {
+                        "message_id": 9,
+                        "date": 1700000200,
+                        "chat": {"id": 42, "type": "private"},
+                        "text": "press me"
+                    },
+                    "chat_instance": "ci-123",
+                    "data": "btn:yes"
+                }
+            },
+            {
+                "update_id": 202,
+                "inline_query": {
+                    "id": "iq-1",
+                    "from": {"id": 7, "is_bot": false, "first_name": "Bob"},
+                    "query": "weather",
+                    "offset": "",
+                    "chat_type": "private"
+                }
+            }
+        ]
+    })";
+
+    tgbotcpp::Api api("dummy-token", http);
+    auto updates = api.getUpdates();
+
+    check(updates.size() == 3, "update kinds: parses three updates");
+    if (updates.size() == 3) {
+        check(updates[0].editedMessage.text == "edited", "parses edited_message");
+
+        const auto& cbq = updates[1].callbackQuery;
+        check(cbq.id == "cbq-1", "parses callback_query id");
+        check(cbq.from.firstName == "Bob", "parses callback_query from");
+        check(cbq.data == "btn:yes", "parses callback_query data");
+        check(cbq.message.text == "press me", "parses callback_query message");
+
+        const auto& iq = updates[2].inlineQuery;
+        check(iq.id == "iq-1", "parses inline_query id");
+        check(iq.query == "weather", "parses inline_query query");
+        check(iq.chatType == "private", "parses inline_query chat_type");
+    }
+}
+
 void testParseUrl() {
     using tgbotcpp::net::parseUrl;
 
@@ -154,6 +216,7 @@ int main() {
     testTokenAccessor();
     testGetUpdates();
     testSendMessage();
+    testUpdateKinds();
     testParseUrl();
     testHttpClientConstructs();
 
